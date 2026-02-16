@@ -8,8 +8,11 @@ A private, offline-first Progressive Web App designed for families to track thei
 - **📷 Barcode Scanning**: Use your camera to scan ISBN/EAN barcodes for instant book lookup
 - **🔍 Fuzzy Search**: Intelligent search across titles, authors, notes, and tags with typo tolerance
 - **📖 Rich Book Details**: Track reading status, ratings, dates, notes, quotes, and photos
-- **🏷️ Smart Organization**: Custom tags, collections, and advanced filtering
+- **⭐ Clear Star Ratings**: Tap to rate books with visual feedback (gold ★ filled, gray ☆ empty)
+- **🏷️ Smart Tag Suggestions**: Auto-suggested tags from book metadata with autocomplete input
+- **📁 Smart Organization**: Custom tags, collections, and advanced filtering
 - **☁️ Manual Backup**: Export/import your library as JSON or backup to Google Drive
+- **⚙️ Easy Google Drive Setup**: Step-by-step guide for setting up Google OAuth
 - **🌙 Dark Mode**: Easy on the eyes with automatic dark mode support
 - **📱 Fully Offline**: Works completely offline after initial installation
 
@@ -23,6 +26,14 @@ A private, offline-first Progressive Web App designed for families to track thei
 1. **Camera Barcode Scanner** - Scan ISBN/EAN codes with your device camera (optimized for Android Chrome)
 2. **Online Search** - Search Google Books API by title, author, or ISBN
 3. **Manual Entry** - Add books manually with custom details
+
+### New UX Improvements (Latest Release)
+- **📊 Improved Star Rating**: Clear visual distinction between filled (★) and empty (☆) stars with gold coloring
+- **🎯 Smart Tagging**: Auto-generated tag suggestions from book titles, authors, and genres
+- **💡 Tag Autocomplete**: Type to see suggestions from existing tags and book metadata
+- **📖 Step-by-Step Google Drive Setup**: Comprehensive in-app guide for OAuth configuration
+- **⚙️ Settings Page**: Centralized settings with Drive connection status and setup instructions
+- **♿ Better Accessibility**: Enhanced focus states, larger touch targets, and clear button feedback
 
 ## 🚀 Installation
 
@@ -117,25 +128,43 @@ The app works on desktop browsers but is optimized for mobile touch interfaces.
 3. Select your backup file
 4. Data will be merged with existing library
 
-#### Google Drive Backup (Requires Setup)
+#### Google Drive Backup (Requires One-Time Setup)
 
-**Initial Setup:**
-1. Create a Google Cloud Project
-2. Enable Google Drive API
-3. Create OAuth 2.0 credentials
-4. Add Client ID to the app settings
+**🆕 Streamlined Setup Process:**
+
+The app now includes a comprehensive **step-by-step setup guide** built right into the Settings page!
+
+**Quick Start:**
+1. Open menu (☰) → **Settings & Google Drive Setup**
+2. Click "Show Google Drive Setup Guide"
+3. Follow the detailed instructions to create OAuth credentials
+4. Paste your Client ID and save
+5. You're ready to backup!
+
+**What You'll Need:**
+- A Google account
+- 5-10 minutes for one-time setup
+- Your GitHub Pages URL or localhost URL
+
+**Using Google Drive Backup:**
 
 **Backup:**
-1. Open menu (☰)
-2. Tap "Backup to Google Drive"
-3. Sign in with Google account
-4. Confirm backup
+1. Open menu (☰) → Settings
+2. Click "Backup to Google Drive"
+3. Sign in with your Google account (first time only)
+4. Your data is securely backed up
 
 **Restore:**
-1. Open menu (☰)
-2. Tap "Restore from Google Drive"
-3. Sign in with Google account
-4. Confirm restore (will merge with existing data)
+1. Open menu (☰) → Settings
+2. Click "Restore from Google Drive"
+3. Sign in with your Google account
+4. Data will be merged with your existing library
+
+**🔒 Privacy Notes:**
+- Backups are **manual only** - nothing uploads automatically
+- Data is stored in your personal Google Drive (not accessible to others)
+- You can revoke access anytime from Google Account settings
+- No data is sent to any external servers except your Google Drive
 
 ### Family Sharing Workflow
 
@@ -180,16 +209,18 @@ The app works on desktop browsers but is optimized for mobile touch interfaces.
 ## 🔧 Configuration
 
 ### Google Books API (Optional)
-Add your API key for higher rate limits:
+The app works without an API key, but you can add one for higher rate limits:
 1. Get an API key from [Google Cloud Console](https://console.cloud.google.com/)
 2. Enable Google Books API
-3. Add key to `js/google-books-api.js` (line 3)
+3. Add key to `js/google-books-api.js` (line 4)
 
-### Google Drive OAuth (Optional)
-For cloud backup functionality:
-1. Create OAuth 2.0 credentials in Google Cloud Console
-2. Add authorized JavaScript origins
-3. Add Client ID to `js/google-drive-backup.js` (line 3)
+### Google Drive OAuth
+**No manual configuration needed!** Use the built-in setup guide:
+1. Open Settings (☰ → Settings & Google Drive Setup)
+2. Click "Show Google Drive Setup Guide"
+3. Follow the step-by-step instructions in the app
+
+The setup guide includes everything you need with clear explanations for non-technical users.
 
 ## 📱 Camera Permissions
 

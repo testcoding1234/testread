@@ -310,6 +310,12 @@ body {
     justify-content: center;
     gap: var(--spacing-sm);
     touch-action: manipulation;
+    min-height: 44px;
+}
+
+.btn:focus-visible {
+    outline: 3px solid var(--accent-primary);
+    outline-offset: 2px;
 }
 
 .btn:active {
@@ -323,6 +329,7 @@ body {
 
 .btn-primary:hover {
     background-color: #2980b9;
+    box-shadow: 0 2px 8px rgba(52, 152, 219, 0.3);
 }
 
 .btn-secondary {
@@ -332,6 +339,7 @@ body {
 
 .btn-secondary:hover {
     background-color: #d0d0d0;
+    box-shadow: 0 2px 8px var(--shadow);
 }
 
 .btn-large {
@@ -355,8 +363,18 @@ body {
     touch-action: manipulation;
 }
 
+.icon-btn:hover {
+    background-color: var(--bg-tertiary);
+}
+
+.icon-btn:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
 .icon-btn:active {
     background-color: var(--bg-tertiary);
+    transform: scale(0.95);
 }
 
 /* ===== Floating Action Button ===== */
@@ -374,8 +392,17 @@ body {
     box-shadow: 0 4px 12px var(--shadow-heavy);
     cursor: pointer;
     z-index: 90;
-    transition: transform var(--transition-fast);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
     touch-action: manipulation;
+}
+
+.fab:hover {
+    box-shadow: 0 6px 16px rgba(52, 152, 219, 0.4);
+}
+
+.fab:focus-visible {
+    outline: 3px solid white;
+    outline-offset: 2px;
 }
 
 .fab:active {
@@ -395,6 +422,7 @@ body {
     background-color: var(--bg-primary);
     color: var(--text-primary);
     margin-bottom: var(--spacing-md);
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
 .form-input:focus,
@@ -402,6 +430,7 @@ body {
 .form-select:focus {
     outline: none;
     border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
 }
 
 .form-textarea {
