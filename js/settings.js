@@ -61,9 +61,16 @@ class SettingsManager {
             return;
         }
 
-        // Basic validation
-        if (!clientId.includes('.apps.googleusercontent.com')) {
-            ui.showToast('Client ID format looks incorrect. Please check it.', 'warning');
+        // Validate Client ID format (must end with .apps.googleusercontent.com)
+        if (!clientId.endsWith('.apps.googleusercontent.com')) {
+            ui.showToast('Client ID must end with .apps.googleusercontent.com', 'error');
+            return;
+        }
+
+        // Additional validation: must have content before the domain
+        const parts = clientId.split('.apps.googleusercontent.com');
+        if (!parts[0] || parts[0].length < 10) {
+            ui.showToast('Client ID format looks incorrect. Please check it.', 'error');
             return;
         }
 
