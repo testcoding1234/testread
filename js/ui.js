@@ -317,8 +317,19 @@ class UIController {
     }
 
     attachBookDetailListeners(book) {
+        // Clean up any previous event listeners
+        if (this.tagSuggestionsCleanup) {
+            this.tagSuggestionsCleanup.forEach(cleanup => cleanup());
+            this.tagSuggestionsCleanup = [];
+        }
+
         // Back button
         document.getElementById('backToLibrary')?.addEventListener('click', () => {
+            // Clean up tag suggestions listeners
+            if (this.tagSuggestionsCleanup) {
+                this.tagSuggestionsCleanup.forEach(cleanup => cleanup());
+                this.tagSuggestionsCleanup = [];
+            }
             this.hide('bookDetailView');
             this.show('libraryView');
             this.renderBookGrid();
@@ -452,11 +463,20 @@ class UIController {
             }
         };
 
-        // Close suggestions when clicking outside
-        document.addEventListener('click', (e) => {
+        // Close suggestions when clicking outside - using named function for cleanup
+        const closeTagSuggestionsHandler = (e) => {
             if (!tagInput?.contains(e.target) && !tagSuggestionsDiv?.contains(e.target)) {
                 tagSuggestionsDiv?.classList.add('hidden');
             }
+        };
+        document.addEventListener('click', closeTagSuggestionsHandler);
+        
+        // Store handler for cleanup
+        if (!this.tagSuggestionsCleanup) {
+            this.tagSuggestionsCleanup = [];
+        }
+        this.tagSuggestionsCleanup.push(() => {
+            document.removeEventListener('click', closeTagSuggestionsHandler);
         });
 
         // Show suggested tags (auto-generated)

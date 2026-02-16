@@ -103,7 +103,7 @@ class TagSuggestionEngine {
     isCommonPhrase(phrase) {
         const lower = phrase.toLowerCase();
         return this.commonWords.has(lower) || 
-               /^(vol|volume|book|edition|chapter|part)\s*\d*$/i.test(lower);
+               /^(vol|volume|book|edition|chapter|part)\s*\d+$/i.test(lower);
     }
 
     isNotablePublisher(publisher) {
