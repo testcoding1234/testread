@@ -318,18 +318,12 @@ class UIController {
 
     attachBookDetailListeners(book) {
         // Clean up any previous event listeners
-        if (this.tagSuggestionsCleanup) {
-            this.tagSuggestionsCleanup.forEach(cleanup => cleanup());
-            this.tagSuggestionsCleanup = [];
-        }
+        this.cleanupTagSuggestions();
 
         // Back button
         document.getElementById('backToLibrary')?.addEventListener('click', () => {
             // Clean up tag suggestions listeners
-            if (this.tagSuggestionsCleanup) {
-                this.tagSuggestionsCleanup.forEach(cleanup => cleanup());
-                this.tagSuggestionsCleanup = [];
-            }
+            this.cleanupTagSuggestions();
             this.hide('bookDetailView');
             this.show('libraryView');
             this.renderBookGrid();
@@ -595,6 +589,13 @@ class UIController {
                 this.showBookDetail(book.id);
             });
         });
+    }
+
+    cleanupTagSuggestions() {
+        if (this.tagSuggestionsCleanup) {
+            this.tagSuggestionsCleanup.forEach(cleanup => cleanup());
+            this.tagSuggestionsCleanup = [];
+        }
     }
 }
 

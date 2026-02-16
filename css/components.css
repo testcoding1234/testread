@@ -873,7 +873,7 @@
 }
 
 .guide-privacy {
-    background-color: #e8f5e9;
+    background-color: var(--bg-success-light);
     padding: var(--spacing-md);
     border-radius: var(--radius-md);
     margin-top: var(--spacing-lg);
@@ -882,7 +882,7 @@
 .guide-privacy h5 {
     font-size: var(--font-size-base);
     font-weight: 600;
-    color: #2e7d32;
+    color: var(--text-success);
     margin-bottom: var(--spacing-sm);
 }
 
@@ -893,7 +893,7 @@
 }
 
 .guide-privacy li {
-    color: #2e7d32;
+    color: var(--text-success);
     margin-bottom: var(--spacing-xs);
     line-height: 1.6;
 }
