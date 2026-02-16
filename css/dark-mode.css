@@ -1,0 +1,88 @@
+/* ===== Dark Mode Styles ===== */
+body.dark-mode {
+    --bg-primary: #1a1a2e;
+    --bg-secondary: #16213e;
+    --bg-tertiary: #0f1729;
+    --text-primary: #eee;
+    --text-secondary: #b8b8b8;
+    --text-muted: #7a7a7a;
+    --accent-primary: #4a90e2;
+    --accent-secondary: #27ae60;
+    --accent-warning: #f39c12;
+    --accent-danger: #e74c3c;
+    --border-color: #2d3748;
+    --shadow: rgba(0, 0, 0, 0.3);
+    --shadow-heavy: rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode specific adjustments */
+body.dark-mode .book-card {
+    background-color: var(--bg-secondary);
+}
+
+body.dark-mode .book-cover {
+    background-color: var(--bg-tertiary);
+}
+
+body.dark-mode .form-input,
+body.dark-mode .form-textarea,
+body.dark-mode .form-select {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+body.dark-mode .search-bar input {
+    background-color: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+body.dark-mode .modal-content {
+    background-color: var(--bg-secondary);
+}
+
+body.dark-mode .method-btn {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .search-result-item {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+body.dark-mode .search-result-item:hover {
+    background-color: var(--bg-primary);
+}
+
+body.dark-mode .menu-item {
+    background-color: var(--bg-tertiary);
+}
+
+body.dark-mode .note-item {
+    background-color: var(--bg-tertiary);
+}
+
+body.dark-mode .tag {
+    background-color: var(--bg-tertiary);
+}
+
+body.dark-mode .status-option {
+    background-color: var(--bg-tertiary);
+    border-color: var(--border-color);
+}
+
+/* Dark mode smooth transition */
+body.dark-mode * {
+    transition: background-color var(--transition-base), 
+                color var(--transition-base), 
+                border-color var(--transition-base);
+}
+
+/* Preserve specific transitions */
+body.dark-mode .btn,
+body.dark-mode .icon-btn,
+body.dark-mode .fab,
+body.dark-mode .book-card {
+    transition: all var(--transition-fast);
+}

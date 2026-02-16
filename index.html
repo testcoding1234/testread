@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#1a1a2e">
+    <meta name="description" content="Family Reading Notes & Book Journal - Track your reading journey">
+    <title>Reading Journal</title>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/svg+xml" sizes="192x192" href="assets/icons/icon-192x192.svg">
+    <link rel="apple-touch-icon" href="assets/icons/icon-192x192.svg">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/dark-mode.css">
+</head>
+<body>
+    <!-- Main App Container -->
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1 class="app-title">📚 Reading Journal</h1>
+                <div class="header-actions">
+                    <button id="searchBtn" class="icon-btn" aria-label="Search">🔍</button>
+                    <button id="filterBtn" class="icon-btn" aria-label="Filter">⚙️</button>
+                    <button id="darkModeToggle" class="icon-btn" aria-label="Toggle Dark Mode">🌙</button>
+                    <button id="menuBtn" class="icon-btn" aria-label="Menu">☰</button>
+                </div>
+            </div>
+            
+            <!-- Search Bar (Hidden by default) -->
+            <div id="searchBar" class="search-bar hidden">
+                <input type="text" id="searchInput" placeholder="Search books, authors, notes..." autocomplete="off">
+                <button id="closeSearch" class="icon-btn">✕</button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="mainContent" class="main-content">
+            <!-- Welcome Screen (shown when library is empty) -->
+            <div id="welcomeScreen" class="welcome-screen">
+                <div class="welcome-content">
+                    <h2>Welcome to Your Reading Journal</h2>
+                    <p>Start building your personal library by adding your first book!</p>
+                    <button id="addFirstBook" class="btn btn-primary btn-large">
+                        📖 Add Your First Book
+                    </button>
+                </div>
+            </div>
+
+            <!-- Library View (Bookshelf) -->
+            <div id="libraryView" class="library-view hidden">
+                <div class="library-header">
+                    <div class="view-controls">
+                        <button id="gridViewBtn" class="view-btn active" aria-label="Grid View">⊞</button>
+                        <button id="listViewBtn" class="view-btn" aria-label="List View">☰</button>
+                    </div>
+                    <div class="filter-tags" id="activeFilters"></div>
+                </div>
+                <div id="bookGrid" class="book-grid"></div>
+            </div>
+
+            <!-- Book Detail View -->
+            <div id="bookDetailView" class="book-detail-view hidden"></div>
+        </main>
+
+        <!-- Floating Action Button -->
+        <button id="addBookBtn" class="fab hidden" aria-label="Add Book">+</button>
+
+        <!-- Add Book Modal -->
+        <div id="addBookModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add a Book</h2>
+                    <button class="close-modal" data-modal="addBookModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="add-book-methods">
+                        <button id="scanBarcodeBtn" class="method-btn">
+                            <span class="method-icon">📷</span>
+                            <span class="method-text">Scan Barcode</span>
+                        </button>
+                        <button id="searchOnlineBtn" class="method-btn">
+                            <span class="method-icon">🌐</span>
+                            <span class="method-text">Search Online</span>
+                        </button>
+                        <button id="manualEntryBtn" class="method-btn">
+                            <span class="method-icon">✏️</span>
+                            <span class="method-text">Manual Entry</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barcode Scanner Modal -->
+        <div id="scannerModal" class="modal">
+            <div class="modal-content modal-fullscreen">
+                <div class="modal-header">
+                    <h2>Scan Book Barcode</h2>
+                    <button class="close-modal" data-modal="scannerModal">✕</button>
+                </div>
+                <div class="modal-body scanner-body">
+                    <div id="scannerContainer">
+                        <video id="scannerVideo" playsinline></video>
+                        <canvas id="scannerCanvas" hidden></canvas>
+                        <div id="scannerOverlay">
+                            <div class="scanner-frame"></div>
+                            <p class="scanner-hint">Position the barcode within the frame</p>
+                        </div>
+                    </div>
+                    <button id="fallbackToSearch" class="btn btn-secondary">
+                        Can't scan? Search instead
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Search Online Modal -->
+        <div id="searchModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Search Books Online</h2>
+                    <button class="close-modal" data-modal="searchModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="onlineSearchInput" placeholder="Enter title, author, or ISBN..." class="search-input">
+                    <button id="performSearch" class="btn btn-primary">Search</button>
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manual Entry Modal -->
+        <div id="manualEntryModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Add Book Manually</h2>
+                    <button class="close-modal" data-modal="manualEntryModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <form id="manualBookForm">
+                        <input type="text" id="manualTitle" placeholder="Book Title *" required class="form-input">
+                        <input type="text" id="manualAuthor" placeholder="Author(s)" class="form-input">
+                        <input type="text" id="manualISBN" placeholder="ISBN (optional)" class="form-input">
+                        <textarea id="manualDescription" placeholder="Description" class="form-textarea"></textarea>
+                        <input type="text" id="manualPublisher" placeholder="Publisher" class="form-input">
+                        <input type="number" id="manualPublishedYear" placeholder="Published Year" class="form-input">
+                        <input type="text" id="manualCategories" placeholder="Categories (comma-separated)" class="form-input">
+                        <button type="submit" class="btn btn-primary">Add Book</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Modal -->
+        <div id="filterModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Filter & Sort</h2>
+                    <button class="close-modal" data-modal="filterModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="filter-section">
+                        <h3>Reading Status</h3>
+                        <label><input type="checkbox" class="status-filter" value="to-read"> To Read</label>
+                        <label><input type="checkbox" class="status-filter" value="reading"> Reading</label>
+                        <label><input type="checkbox" class="status-filter" value="finished"> Finished</label>
+                    </div>
+                    <div class="filter-section">
+                        <h3>Rating</h3>
+                        <select id="ratingFilter" class="form-select">
+                            <option value="">All Ratings</option>
+                            <option value="5">5 Stars</option>
+                            <option value="4">4+ Stars</option>
+                            <option value="3">3+ Stars</option>
+                        </select>
+                    </div>
+                    <div class="filter-section">
+                        <h3>Tags</h3>
+                        <div id="tagFilterList"></div>
+                    </div>
+                    <div class="filter-section">
+                        <h3>Collections</h3>
+                        <div id="collectionFilterList"></div>
+                    </div>
+                    <div class="filter-actions">
+                        <button id="clearFilters" class="btn btn-secondary">Clear All</button>
+                        <button id="applyFilters" class="btn btn-primary">Apply Filters</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Menu Modal -->
+        <div id="menuModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>Menu</h2>
+                    <button class="close-modal" data-modal="menuModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <div class="menu-section">
+                        <h3>Collections</h3>
+                        <button id="manageCollections" class="menu-item">📁 Manage Collections</button>
+                        <button id="manageTags" class="menu-item">🏷️ Manage Tags</button>
+                    </div>
+                    <div class="menu-section">
+                        <h3>Backup & Sync</h3>
+                        <button id="backupToDrive" class="menu-item">☁️ Backup to Google Drive</button>
+                        <button id="restoreFromDrive" class="menu-item">📥 Restore from Google Drive</button>
+                        <button id="exportJSON" class="menu-item">💾 Export as JSON</button>
+                        <button id="importJSON" class="menu-item">📂 Import JSON</button>
+                    </div>
+                    <div class="menu-section">
+                        <h3>Statistics</h3>
+                        <button id="viewStats" class="menu-item">📊 Reading Statistics</button>
+                    </div>
+                    <div class="menu-section">
+                        <h3>About</h3>
+                        <button id="aboutApp" class="menu-item">ℹ️ About</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="loading-spinner hidden">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toastContainer" class="toast-container"></div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
+    
+    <!-- Scripts -->
+    <script src="js/db.js"></script>
+    <script src="js/barcode-scanner.js"></script>
+    <script src="js/google-books-api.js"></script>
+    <script src="js/google-drive-backup.js"></script>
+    <script src="js/fuzzy-search.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/book-detail.js"></script>
+    <script src="js/collections.js"></script>
+    <script src="js/app.js"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('Service Worker registered:', reg))
+                .catch(err => console.error('Service Worker registration failed:', err));
+        }
+    </script>
+</body>
+</html>
