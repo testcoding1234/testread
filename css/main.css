@@ -11,10 +11,12 @@
     --bg-secondary: #ffffff;
     --bg-tertiary: #e8e8e8;
     --bg-success-light: #e8f5e9;
+    --bg-warning-light: #fff3e0;
     --text-primary: #2c3e50;
     --text-secondary: #5a6c7d;
     --text-muted: #95a5a6;
     --text-success: #2e7d32;
+    --text-warning: #f57c00;
     --accent-primary: #3498db;
     --accent-secondary: #2ecc71;
     --accent-warning: #f39c12;

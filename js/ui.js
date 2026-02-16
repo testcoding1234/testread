@@ -4,6 +4,7 @@ class UIController {
         this.currentView = 'library';
         this.currentFilters = {};
         this.viewMode = 'grid';
+        this.tagSuggestionsCleanup = [];
     }
 
     // Show loading spinner
@@ -466,9 +467,6 @@ class UIController {
         document.addEventListener('click', closeTagSuggestionsHandler);
         
         // Store handler for cleanup
-        if (!this.tagSuggestionsCleanup) {
-            this.tagSuggestionsCleanup = [];
-        }
         this.tagSuggestionsCleanup.push(() => {
             document.removeEventListener('click', closeTagSuggestionsHandler);
         });

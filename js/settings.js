@@ -70,6 +70,7 @@ class SettingsManager {
         localStorage.setItem(this.clientIdKey, clientId);
         
         // Initialize Google Drive backup with the new Client ID
+        // Second parameter is API key (optional, not used for Drive API v3)
         driveBackup.initialize(clientId, '').then(() => {
             ui.showToast('Client ID saved successfully! ✅', 'success');
             this.updateConnectionStatus();
@@ -135,7 +136,7 @@ class SettingsManager {
         try {
             ui.showLoading();
             
-            // Initialize if not already done
+            // Initialize if not already done (API key not needed for Drive API v3)
             if (!driveBackup.clientId) {
                 await driveBackup.initialize(clientId, '');
             }
@@ -174,7 +175,7 @@ class SettingsManager {
         try {
             ui.showLoading();
             
-            // Initialize if not already done
+            // Initialize if not already done (API key not needed for Drive API v3)
             if (!driveBackup.clientId) {
                 await driveBackup.initialize(clientId, '');
             }

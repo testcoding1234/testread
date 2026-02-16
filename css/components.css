@@ -716,13 +716,13 @@
 }
 
 .status-connected {
-    background-color: #e8f5e9;
-    color: #2e7d32;
+    background-color: var(--bg-success-light);
+    color: var(--text-success);
 }
 
 .status-disconnected {
-    background-color: #fff3e0;
-    color: #f57c00;
+    background-color: var(--bg-warning-light);
+    color: var(--text-warning);
 }
 
 .form-group {
