@@ -447,25 +447,35 @@
 
 .rating-stars {
     display: flex;
-    gap: var(--spacing-xs);
-    font-size: var(--font-size-xl);
+    gap: var(--spacing-sm);
+    font-size: 36px;
+    user-select: none;
 }
 
 .star {
     cursor: pointer;
-    transition: transform var(--transition-fast);
+    transition: all var(--transition-fast);
+    padding: var(--spacing-xs);
+    min-width: 48px;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-sm);
 }
 
-.star:hover {
-    transform: scale(1.2);
+.star:active {
+    transform: scale(0.95);
 }
 
 .star.filled {
-    color: var(--accent-warning);
+    color: #FFD700;
+    filter: drop-shadow(0 2px 4px rgba(255, 215, 0, 0.3));
 }
 
 .star.empty {
-    color: var(--border-color);
+    color: #D3D3D3;
+    opacity: 0.6;
 }
 
 .tags-container {
@@ -496,6 +506,91 @@
     font-size: var(--font-size-sm);
     cursor: pointer;
     padding: 0 var(--spacing-xs);
+}
+
+/* Tag Autocomplete Suggestions */
+.tag-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 4px 12px var(--shadow);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 10;
+    margin-top: var(--spacing-xs);
+}
+
+.tag-suggestion-item {
+    padding: var(--spacing-sm) var(--spacing-md);
+    cursor: pointer;
+    transition: background-color var(--transition-fast);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tag-suggestion-item:hover,
+.tag-suggestion-item.active {
+    background-color: var(--bg-tertiary);
+}
+
+.tag-suggestion-item.new-tag {
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+.tag-suggestion-item .tag-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    background-color: var(--accent-primary);
+    color: white;
+    border-radius: var(--radius-sm);
+}
+
+/* Suggested Tags (Pre-filled recommendations) */
+.suggested-tags-container {
+    margin-top: var(--spacing-md);
+}
+
+.suggested-tags-header {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    margin-bottom: var(--spacing-sm);
+    font-weight: 500;
+}
+
+.suggested-tags-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+}
+
+.suggested-tag {
+    padding: var(--spacing-xs) var(--spacing-md);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    font-size: var(--font-size-sm);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.suggested-tag:hover {
+    background-color: var(--accent-primary);
+    color: white;
+    border-style: solid;
+}
+
+.suggested-tag:active {
+    transform: scale(0.95);
 }
 
 .photos-grid {

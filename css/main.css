@@ -269,7 +269,9 @@ body {
 }
 
 .book-rating {
-    color: var(--accent-warning);
+    color: #FFD700;
+    letter-spacing: 2px;
+    font-size: 14px;
 }
 
 .book-status {
