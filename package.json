@@ -1,0 +1,26 @@
+{
+  "name": "family-reading-journal",
+  "version": "1.0.0",
+  "description": "A private, offline-first PWA for tracking family reading",
+  "main": "index.html",
+  "scripts": {
+    "start": "python3 -m http.server 8080",
+    "serve": "npx http-server -p 8080 -c-1",
+    "dev": "npx http-server -p 8080 -c-1 -o"
+  },
+  "keywords": [
+    "pwa",
+    "reading",
+    "books",
+    "journal",
+    "offline",
+    "family",
+    "library"
+  ],
+  "author": "Family Reading Journal Contributors",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/testcoding1234/testread.git"
+  }
+}
