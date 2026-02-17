@@ -2,7 +2,7 @@
 //
 // SECURITY NOTE: Tag Suggestion Rendering
 // ========================================
-// The tag suggestion system has been hardened against XSS (Cross-Site Scripting) attacks.
+// The tag suggestion system has been hardened against Cross-Site Scripting (XSS) attacks.
 // 
 // Protection measures:
 // 1. All dynamic tag names from user input or external sources (e.g., book metadata from APIs)
@@ -681,10 +681,12 @@ class UIController {
             tagEl.dataset.tagName = tagName;
             
             // Use textContent for tag name (XSS-safe)
-            const tagText = document.createTextNode(tagName + ' ');
-            tagEl.appendChild(tagText);
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = tagName;
+            tagEl.appendChild(nameSpan);
             
-            // Add plus sign
+            // Add space and plus sign
+            tagEl.appendChild(document.createTextNode(' '));
             const plusSign = document.createElement('span');
             plusSign.style.opacity = '0.6';
             plusSign.textContent = '+';
