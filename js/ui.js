@@ -348,8 +348,8 @@ class UIController {
     renderTagSuggestions(container, suggestions, selectCallback) {
         if (!container) return;
 
-        // Clear existing content
-        container.innerHTML = '';
+        // Clear existing content safely
+        container.replaceChildren();
 
         // Create suggestion items using safe DOM APIs
         suggestions.forEach((suggestion, index) => {
@@ -660,8 +660,8 @@ class UIController {
             return;
         }
 
-        // Clear container
-        suggestedTagsContainer.innerHTML = '';
+        // Clear container safely
+        suggestedTagsContainer.replaceChildren();
 
         // Create header using safe DOM APIs
         const header = document.createElement('div');
@@ -678,6 +678,8 @@ class UIController {
         newSuggestions.forEach(tagName => {
             const tagEl = document.createElement('div');
             tagEl.className = 'suggested-tag';
+            // Note: tagName stored in dataset is user-controlled and must be treated 
+            // as untrusted input if read elsewhere in the codebase
             tagEl.dataset.tagName = tagName;
             
             // Use textContent for tag name (XSS-safe)
