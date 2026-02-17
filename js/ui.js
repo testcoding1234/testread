@@ -2,7 +2,7 @@
 //
 // SECURITY NOTE: Tag Suggestion Rendering
 // ========================================
-// The tag suggestion system has been hardened against Cross-Site Scripting (XSS) attacks.
+// The tag suggestion system uses DOM APIs to prevent Cross-Site Scripting (XSS) attacks.
 // 
 // Protection measures:
 // 1. All dynamic tag names from user input or external sources (e.g., book metadata from APIs)
@@ -678,8 +678,9 @@ class UIController {
         newSuggestions.forEach(tagName => {
             const tagEl = document.createElement('div');
             tagEl.className = 'suggested-tag';
-            // Note: tagName stored in dataset is user-controlled and must be treated 
-            // as untrusted input if read elsewhere in the codebase
+            // Note: tagName is stored in dataset and later passed to db.addTag(). 
+            // While rendering is XSS-safe via textContent, the tag name is stored as-is 
+            // in IndexedDB and must be rendered safely (using textContent) wherever displayed.
             tagEl.dataset.tagName = tagName;
             
             // Use textContent for tag name (XSS-safe)
