@@ -4,6 +4,7 @@ class UIController {
         this.currentView = 'library';
         this.currentFilters = {};
         this.viewMode = 'grid';
+        this.tagSuggestionsCleanup = [];
     }
 
     // Show loading spinner
@@ -137,7 +138,7 @@ class UIController {
         if (book.rating > 0) {
             const rating = document.createElement('span');
             rating.className = 'book-rating';
-            rating.textContent = '⭐'.repeat(book.rating);
+            rating.innerHTML = '★'.repeat(book.rating) + '☆'.repeat(5 - book.rating);
             meta.appendChild(rating);
         }
 
@@ -271,10 +272,16 @@ class UIController {
                             </span>
                         `).join('')}
                     </div>
-                    <div style="display: flex; gap: 8px; margin-top: 12px;">
-                        <input type="text" id="newTagInput" placeholder="Add tag..." class="form-input">
-                        <button id="addTag" class="btn btn-primary">Add</button>
+                    <div style="position: relative; margin-top: 12px;">
+                        <input 
+                            type="text" 
+                            id="newTagInput" 
+                            placeholder="Add tag... (type to see suggestions)" 
+                            class="form-input"
+                            autocomplete="off">
+                        <div id="tagSuggestions" class="tag-suggestions hidden"></div>
                     </div>
+                    <div id="suggestedTags" class="suggested-tags-container"></div>
                 </div>
 
                 <div class="book-detail-section">
@@ -297,7 +304,9 @@ class UIController {
     renderStars(rating) {
         let html = '';
         for (let i = 1; i <= 5; i++) {
-            html += `<span class="star ${i <= rating ? 'filled' : 'empty'}" data-rating="${i}">⭐</span>`;
+            const isFilled = i <= rating;
+            const starSymbol = isFilled ? '★' : '☆';
+            html += `<span class="star ${isFilled ? 'filled' : 'empty'}" data-rating="${i}">${starSymbol}</span>`;
         }
         return html;
     }
@@ -309,23 +318,20 @@ class UIController {
     }
 
     attachBookDetailListeners(book) {
+        // Clean up any previous event listeners
+        this.cleanupTagSuggestions();
+
         // Back button
         document.getElementById('backToLibrary')?.addEventListener('click', () => {
+            // Clean up tag suggestions listeners
+            this.cleanupTagSuggestions();
             this.hide('bookDetailView');
             this.show('libraryView');
             this.renderBookGrid();
         });
 
         // Rating stars
-        document.querySelectorAll('.rating-stars .star').forEach(star => {
-            star.addEventListener('click', async (e) => {
-                const rating = parseInt(e.target.dataset.rating);
-                book.rating = rating;
-                await db.updateBook(book);
-                document.getElementById('ratingStars').innerHTML = this.renderStars(rating);
-                this.showToast('Rating updated', 'success');
-            });
-        });
+        this.attachRatingListeners(book);
 
         // Add note
         document.getElementById('addNote')?.addEventListener('click', async () => {
@@ -338,17 +344,135 @@ class UIController {
             }
         });
 
-        // Add tag
-        document.getElementById('addTag')?.addEventListener('click', async () => {
-            const tagName = document.getElementById('newTagInput').value.trim();
+        // Add tag with autocomplete
+        const tagInput = document.getElementById('newTagInput');
+        const tagSuggestionsDiv = document.getElementById('tagSuggestions');
+        let currentSuggestions = [];
+        let selectedSuggestionIndex = -1;
+
+        // Show suggestions on input
+        tagInput?.addEventListener('input', async (e) => {
+            const query = e.target.value.trim();
+            
+            if (query.length === 0) {
+                tagSuggestionsDiv?.classList.add('hidden');
+                return;
+            }
+
+            currentSuggestions = await tagSuggestions.getCombinedSuggestions(book, query);
+            
+            if (currentSuggestions.length === 0) {
+                tagSuggestionsDiv?.classList.add('hidden');
+                return;
+            }
+
+            // Render suggestions
+            tagSuggestionsDiv.innerHTML = currentSuggestions.map((suggestion, index) => `
+                <div class="tag-suggestion-item ${suggestion.isNew ? 'new-tag' : ''}" data-index="${index}">
+                    <span>${suggestion.name}</span>
+                    ${suggestion.isNew ? '<span class="tag-badge">NEW</span>' : ''}
+                </div>
+            `).join('');
+            
+            tagSuggestionsDiv?.classList.remove('hidden');
+            selectedSuggestionIndex = -1;
+
+            // Attach click handlers to suggestions
+            tagSuggestionsDiv.querySelectorAll('.tag-suggestion-item').forEach((item, index) => {
+                item.addEventListener('click', () => {
+                    selectSuggestion(index);
+                });
+            });
+        });
+
+        // Keyboard navigation for suggestions
+        tagInput?.addEventListener('keydown', async (e) => {
+            if (tagSuggestionsDiv?.classList.contains('hidden')) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    await addTagFromInput();
+                }
+                return;
+            }
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedSuggestionIndex = Math.min(selectedSuggestionIndex + 1, currentSuggestions.length - 1);
+                updateSuggestionHighlight();
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedSuggestionIndex = Math.max(selectedSuggestionIndex - 1, -1);
+                updateSuggestionHighlight();
+            } else if (e.key === 'Enter') {
+                e.preventDefault();
+                if (selectedSuggestionIndex >= 0) {
+                    await selectSuggestion(selectedSuggestionIndex);
+                } else {
+                    await addTagFromInput();
+                }
+            } else if (e.key === 'Escape') {
+                tagSuggestionsDiv?.classList.add('hidden');
+                selectedSuggestionIndex = -1;
+            }
+        });
+
+        const updateSuggestionHighlight = () => {
+            tagSuggestionsDiv?.querySelectorAll('.tag-suggestion-item').forEach((item, index) => {
+                if (index === selectedSuggestionIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        };
+
+        const selectSuggestion = async (index) => {
+            const suggestion = currentSuggestions[index];
+            if (!suggestion) return;
+
+            let tagId;
+            if (suggestion.isNew) {
+                // Create new tag
+                tagId = await db.addTag(suggestion.name);
+            } else {
+                // Use existing tag
+                tagId = suggestion.id;
+            }
+
+            await db.addTagToBook(book.id, tagId);
+            tagInput.value = '';
+            tagSuggestionsDiv?.classList.add('hidden');
+            this.showToast('Tag added', 'success');
+            this.showBookDetail(book.id);
+        };
+
+        const addTagFromInput = async () => {
+            const tagName = tagInput.value.trim();
             if (tagName) {
                 const tagId = await db.addTag(tagName);
                 await db.addTagToBook(book.id, tagId);
-                document.getElementById('newTagInput').value = '';
+                tagInput.value = '';
+                tagSuggestionsDiv?.classList.add('hidden');
                 this.showToast('Tag added', 'success');
                 this.showBookDetail(book.id);
             }
+        };
+
+        // Close suggestions when clicking outside - using named function for cleanup
+        const closeTagSuggestionsHandler = (e) => {
+            if (!tagInput?.contains(e.target) && !tagSuggestionsDiv?.contains(e.target)) {
+                tagSuggestionsDiv?.classList.add('hidden');
+            }
+        };
+        document.addEventListener('click', closeTagSuggestionsHandler);
+        
+        // Store handler for cleanup
+        this.tagSuggestionsCleanup.push(() => {
+            document.removeEventListener('click', closeTagSuggestionsHandler);
         });
+
+        // Show suggested tags (auto-generated)
+        this.showSuggestedTags(book);
 
         // Add photo
         document.getElementById('addPhoto')?.addEventListener('click', () => {
@@ -379,6 +503,24 @@ class UIController {
         });
     }
 
+    attachRatingListeners(book) {
+        document.querySelectorAll('.rating-stars .star').forEach(star => {
+            star.addEventListener('click', async (e) => {
+                const rating = parseInt(e.target.dataset.rating);
+                book.rating = rating;
+                await db.updateBook(book);
+                // Update all stars immediately
+                const ratingStarsContainer = document.getElementById('ratingStars');
+                if (ratingStarsContainer) {
+                    ratingStarsContainer.innerHTML = this.renderStars(rating);
+                    // Re-attach listeners after updating HTML
+                    this.attachRatingListeners(book);
+                }
+                this.showToast('Rating updated', 'success');
+            });
+        });
+    }
+
     async deleteNote(noteId) {
         if (confirm('Delete this note?')) {
             await db.deleteNote(noteId);
@@ -402,6 +544,56 @@ class UIController {
         await db.removeTagFromBook(bookId, tagId);
         this.showToast('Tag removed', 'success');
         this.showBookDetail(bookId);
+    }
+
+    async showSuggestedTags(book) {
+        const suggestedTagsContainer = document.getElementById('suggestedTags');
+        if (!suggestedTagsContainer) return;
+
+        // Get current tags for the book
+        const currentTags = await db.getTagsForBook(book.id);
+        const currentTagNames = new Set(currentTags.map(t => t.name));
+
+        // Generate suggestions
+        const suggestions = tagSuggestions.generateSuggestions(book);
+        
+        // Filter out tags that are already added
+        const newSuggestions = suggestions.filter(s => !currentTagNames.has(s));
+
+        if (newSuggestions.length === 0) {
+            suggestedTagsContainer.innerHTML = '';
+            return;
+        }
+
+        // Render suggested tags
+        suggestedTagsContainer.innerHTML = `
+            <div class="suggested-tags-header">💡 Suggested tags:</div>
+            <div class="suggested-tags-list">
+                ${newSuggestions.map(tagName => `
+                    <div class="suggested-tag" data-tag-name="${this.escapeHtml(tagName)}">
+                        ${this.escapeHtml(tagName)} <span style="opacity: 0.6;">+</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+
+        // Attach click handlers
+        suggestedTagsContainer.querySelectorAll('.suggested-tag').forEach(tagEl => {
+            tagEl.addEventListener('click', async () => {
+                const tagName = tagEl.dataset.tagName;
+                const tagId = await db.addTag(tagName);
+                await db.addTagToBook(book.id, tagId);
+                this.showToast(`Tag "${tagName}" added`, 'success');
+                this.showBookDetail(book.id);
+            });
+        });
+    }
+
+    cleanupTagSuggestions() {
+        if (this.tagSuggestionsCleanup) {
+            this.tagSuggestionsCleanup.forEach(cleanup => cleanup());
+            this.tagSuggestionsCleanup = [];
+        }
     }
 }
 

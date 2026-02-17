@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading Journal - Manual Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 { color: #2c3e50; }
+        .test-section {
+            background: white;
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .test-item {
+            padding: 10px;
+            margin: 8px 0;
+            border-left: 4px solid #3498db;
+            background: #f8f9fa;
+        }
+        .success { border-left-color: #2ecc71; }
+        .error { border-left-color: #e74c3c; }
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #2980b9; }
+        .status { font-weight: bold; }
+        code {
+            background: #eee;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>📚 Reading Journal - Manual Test Suite</h1>
+    
+    <div class="test-section">
+        <h2>✅ Feature Tests</h2>
+        <button onclick="runAllTests()">Run All Tests</button>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🎨 Visual Features</h2>
+        <div class="test-item">
+            <h3>Star Rating System</h3>
+            <p>Open the app and add a book, then rate it:</p>
+            <ul>
+                <li>Empty stars should be gray (☆)</li>
+                <li>Filled stars should be gold (★)</li>
+                <li>Tapping instantly updates rating</li>
+                <li>Large touch targets (48px minimum)</li>
+            </ul>
+        </div>
+        
+        <div class="test-item">
+            <h3>Smart Tag Suggestions</h3>
+            <p>Add a book and go to the tags section:</p>
+            <ul>
+                <li>Auto-suggested tags appear below input</li>
+                <li>Type in tag input to see autocomplete dropdown</li>
+                <li>Can select suggested or create custom tags</li>
+                <li>Tags extracted from title, author, categories</li>
+            </ul>
+        </div>
+        
+        <div class="test-item">
+            <h3>Google Drive Setup Guide</h3>
+            <p>Access the setup guide:</p>
+            <ul>
+                <li>Menu (☰) → "Settings & Google Drive Setup"</li>
+                <li>Click "Show Google Drive Setup Guide"</li>
+                <li>Step-by-step instructions are clear and detailed</li>
+                <li>Privacy information is visible</li>
+                <li>Can save Client ID in settings</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>♿ Accessibility Tests</h2>
+        <div class="test-item">
+            <h3>Keyboard Navigation</h3>
+            <ul>
+                <li>Tab through all buttons and inputs</li>
+                <li>Focus states are clearly visible</li>
+                <li>Enter key works on buttons</li>
+                <li>Escape closes modals</li>
+            </ul>
+        </div>
+        
+        <div class="test-item">
+            <h3>Touch Targets</h3>
+            <ul>
+                <li>All buttons are at least 44px × 44px</li>
+                <li>Stars are at least 48px for easy tapping</li>
+                <li>No overlapping touch areas</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔄 Backward Compatibility</h2>
+        <div class="test-item">
+            <h3>Existing Data</h3>
+            <ul>
+                <li>No database schema changes (version 1)</li>
+                <li>Existing books still load correctly</li>
+                <li>Old ratings display properly</li>
+                <li>All existing tags still work</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Load application scripts for testing -->
+    <script src="js/db.js"></script>
+    <script src="js/tag-suggestions.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/ui.js"></script>
+
+    <script>
+        async function runAllTests() {
+            const resultsDiv = document.getElementById('testResults');
+            resultsDiv.innerHTML = '<p>Running tests...</p>';
+            
+            const tests = [
+                {
+                    name: 'Check if all JS files are loaded',
+                    test: () => {
+                        return typeof db !== 'undefined' && 
+                               typeof ui !== 'undefined' && 
+                               typeof tagSuggestions !== 'undefined' &&
+                               typeof settingsManager !== 'undefined';
+                    }
+                },
+                {
+                    name: 'Check database initialization',
+                    test: async () => {
+                        if (typeof db === 'undefined') return false;
+                        try {
+                            await db.init();
+                            return db.db !== null;
+                        } catch (e) {
+                            return false;
+                        }
+                    }
+                },
+                {
+                    name: 'Check tag suggestion engine',
+                    test: () => {
+                        if (typeof tagSuggestions === 'undefined') return false;
+                        const book = {
+                            title: 'Harry Potter and the Philosopher\'s Stone',
+                            authors: ['J.K. Rowling'],
+                            categories: ['Fiction', 'Fantasy', 'Young Adult']
+                        };
+                        const suggestions = tagSuggestions.generateSuggestions(book);
+                        return suggestions.length > 0;
+                    }
+                },
+                {
+                    name: 'Check settings manager initialization',
+                    test: () => {
+                        return typeof settingsManager !== 'undefined' &&
+                               typeof settingsManager.init === 'function';
+                    }
+                },
+                {
+                    name: 'Verify CSS files loaded',
+                    test: () => {
+                        const sheets = document.styleSheets;
+                        return sheets.length > 0;
+                    }
+                }
+            ];
+            
+            let results = '<h3>Test Results:</h3>';
+            let passCount = 0;
+            
+            for (const test of tests) {
+                try {
+                    const result = await test.test();
+                    const status = result ? '✅ PASS' : '❌ FAIL';
+                    const className = result ? 'success' : 'error';
+                    results += `<div class="test-item ${className}"><span class="status">${status}</span> ${test.name}</div>`;
+                    if (result) passCount++;
+                } catch (error) {
+                    results += `<div class="test-item error"><span class="status">❌ ERROR</span> ${test.name}: ${error.message}</div>`;
+                }
+            }
+            
+            results += `<p><strong>Results: ${passCount}/${tests.length} tests passed</strong></p>`;
+            resultsDiv.innerHTML = results;
+        }
+    </script>
+</body>
+</html>

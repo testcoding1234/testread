@@ -23,6 +23,9 @@ class App {
             // Initialize fuzzy search
             await fuzzySearch.initialize();
 
+            // Initialize settings manager
+            settingsManager.init();
+
             this.initialized = true;
             console.log('App initialized successfully');
 
@@ -440,37 +443,11 @@ class App {
     }
 
     async backupToGoogleDrive() {
-        try {
-            // Note: This requires Google OAuth setup
-            ui.showToast('Google Drive backup requires OAuth setup. Use JSON export instead.', 'warning');
-            
-            // Uncomment when OAuth is configured:
-            // ui.showLoading();
-            // await driveBackup.backupToDrive();
-            // ui.hideLoading();
-            // ui.showToast('Backup completed', 'success');
-        } catch (error) {
-            console.error('Backup error:', error);
-            ui.showToast(error.message || 'Backup failed', 'error');
-        }
+        await settingsManager.backupToDrive();
     }
 
     async restoreFromGoogleDrive() {
-        try {
-            ui.showToast('Google Drive restore requires OAuth setup. Use JSON import instead.', 'warning');
-            
-            // Uncomment when OAuth is configured:
-            // if (confirm('This will merge backup data with existing data. Continue?')) {
-            //     ui.showLoading();
-            //     await driveBackup.restoreFromDrive();
-            //     ui.hideLoading();
-            //     ui.showToast('Restore completed', 'success');
-            //     await ui.renderBookGrid();
-            // }
-        } catch (error) {
-            console.error('Restore error:', error);
-            ui.showToast(error.message || 'Restore failed', 'error');
-        }
+        await settingsManager.restoreFromDrive();
     }
 
     importJSON() {

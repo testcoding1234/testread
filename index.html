@@ -207,6 +207,10 @@
                 </div>
                 <div class="modal-body">
                     <div class="menu-section">
+                        <h3>Settings</h3>
+                        <button id="openSettings" class="menu-item">⚙️ Settings & Google Drive Setup</button>
+                    </div>
+                    <div class="menu-section">
                         <h3>Collections</h3>
                         <button id="manageCollections" class="menu-item">📁 Manage Collections</button>
                         <button id="manageTags" class="menu-item">🏷️ Manage Tags</button>
@@ -230,6 +234,165 @@
             </div>
         </div>
 
+        <!-- Settings Modal -->
+        <div id="settingsModal" class="modal">
+            <div class="modal-content modal-large">
+                <div class="modal-header">
+                    <h2>⚙️ Settings</h2>
+                    <button class="close-modal" data-modal="settingsModal">✕</button>
+                </div>
+                <div class="modal-body">
+                    <!-- Google Drive Setup Section -->
+                    <div class="settings-section">
+                        <h3 class="settings-section-title">☁️ Google Drive Backup</h3>
+                        
+                        <!-- Connection Status -->
+                        <div class="drive-status">
+                            <span class="status-label">Status:</span>
+                            <span id="driveConnectionStatus" class="status-badge status-disconnected">
+                                ⚠️ Not Connected
+                            </span>
+                        </div>
+
+                        <!-- Client ID Input -->
+                        <div class="form-group">
+                            <label for="googleClientId" class="form-label">
+                                Google OAuth Client ID
+                                <span class="help-icon" title="Required for Google Drive backup">ⓘ</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="googleClientId" 
+                                class="form-input" 
+                                placeholder="123456789-xxxxx.apps.googleusercontent.com"
+                                autocomplete="off">
+                            <button id="saveClientId" class="btn btn-primary" style="margin-top: 8px;">
+                                Save Client ID
+                            </button>
+                        </div>
+
+                        <!-- Drive Actions -->
+                        <div class="drive-actions">
+                            <button id="settingsBackupToDrive" class="btn btn-secondary" style="width: 100%;">
+                                ☁️ Backup to Google Drive
+                            </button>
+                            <button id="settingsRestoreFromDrive" class="btn btn-secondary" style="width: 100%; margin-top: 8px;">
+                                📥 Restore from Google Drive
+                            </button>
+                        </div>
+
+                        <!-- Setup Guide Toggle -->
+                        <button id="toggleSetupGuide" class="btn btn-link" style="margin-top: 16px;">
+                            📚 Show Google Drive Setup Guide
+                        </button>
+
+                        <!-- Setup Guide Content (Hidden by default) -->
+                        <div id="driveSetupGuide" class="setup-guide hidden">
+                            <div class="guide-header">
+                                <h4>🔧 How to Set Up Google Drive Backup</h4>
+                                <p class="guide-intro">
+                                    Follow these steps to enable secure Google Drive backups. Don't worry - this is a one-time setup!
+                                </p>
+                            </div>
+
+                            <div class="guide-step">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h5>Create a Google Cloud Project</h5>
+                                    <ul>
+                                        <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer">Google Cloud Console</a></li>
+                                        <li>Click "Select a project" → "New Project"</li>
+                                        <li>Name it "Reading Journal" (or anything you like)</li>
+                                        <li>Click "Create"</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="guide-step">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h5>Enable Google Drive API</h5>
+                                    <ul>
+                                        <li>In your project, go to "APIs & Services" → "Library"</li>
+                                        <li>Search for "Google Drive API"</li>
+                                        <li>Click on it and press "Enable"</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="guide-step">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h5>Create OAuth 2.0 Credentials</h5>
+                                    <ul>
+                                        <li>Go to "APIs & Services" → "Credentials"</li>
+                                        <li>Click "Create Credentials" → "OAuth client ID"</li>
+                                        <li>If prompted, configure the OAuth consent screen:
+                                            <ul>
+                                                <li>User Type: External</li>
+                                                <li>App name: "Reading Journal"</li>
+                                                <li>User support email: Your email</li>
+                                                <li>Developer contact: Your email</li>
+                                                <li>Click "Save and Continue" through all steps</li>
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="guide-step">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h5>Configure OAuth Client</h5>
+                                    <ul>
+                                        <li>Application type: "Web application"</li>
+                                        <li>Name: "Reading Journal Web"</li>
+                                        <li><strong>Authorized JavaScript origins:</strong>
+                                            <div class="code-block">
+                                                <code id="currentOrigin">https://yourusername.github.io</code>
+                                                <button class="copy-btn" onclick="navigator.clipboard.writeText(document.getElementById('currentOrigin').textContent)">📋 Copy</button>
+                                            </div>
+                                            <small>⚠️ Important: Use your actual GitHub Pages URL or localhost URL</small>
+                                        </li>
+                                        <li>Click "Create"</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="guide-step">
+                                <div class="step-number">5</div>
+                                <div class="step-content">
+                                    <h5>Copy Your Client ID</h5>
+                                    <ul>
+                                        <li>After creating the credentials, you'll see your Client ID</li>
+                                        <li>It looks like: <code>123456789-xxxxx.apps.googleusercontent.com</code></li>
+                                        <li>Copy this Client ID</li>
+                                        <li>Paste it in the "Google OAuth Client ID" field above</li>
+                                        <li>Click "Save Client ID"</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="guide-privacy">
+                                <h5>🔒 Privacy & Security</h5>
+                                <ul>
+                                    <li>✅ Your data is stored locally on your device</li>
+                                    <li>✅ Backups are <strong>manual only</strong> - nothing uploads automatically</li>
+                                    <li>✅ Only you can access your Google Drive backup</li>
+                                    <li>✅ This app never sends data to any other servers</li>
+                                    <li>✅ You can revoke access anytime from your Google Account settings</li>
+                                </ul>
+                            </div>
+
+                            <div class="guide-footer">
+                                <p><strong>Need help?</strong> Visit the <a href="https://github.com/testcoding1234/testread#readme" target="_blank" rel="noopener noreferrer">documentation on GitHub</a> for more details.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Loading Spinner -->
         <div id="loadingSpinner" class="loading-spinner hidden">
             <div class="spinner"></div>
@@ -248,6 +411,8 @@
     <script src="js/google-books-api.js"></script>
     <script src="js/google-drive-backup.js"></script>
     <script src="js/fuzzy-search.js"></script>
+    <script src="js/tag-suggestions.js"></script>
+    <script src="js/settings.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/book-detail.js"></script>
     <script src="js/collections.js"></script>
