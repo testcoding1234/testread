@@ -1,4 +1,24 @@
 // UI Controller and Helpers
+//
+// SECURITY NOTE: Tag Suggestion Rendering
+// ========================================
+// The tag suggestion system uses DOM APIs to prevent Cross-Site Scripting (XSS) attacks.
+// 
+// Protection measures:
+// 1. All dynamic tag names from user input or external sources (e.g., book metadata from APIs)
+//    are rendered using DOM APIs (createElement + textContent) instead of innerHTML.
+// 2. textContent automatically escapes HTML special characters, preventing injection of 
+//    malicious scripts through tag names.
+// 3. Event listeners are registered programmatically and tracked in tagSuggestionsCleanup array
+//    to prevent memory leaks when navigating away from the book detail view.
+// 
+// Why this is XSS-safe:
+// - textContent treats all input as plain text, never as HTML or JavaScript
+// - Even if a tag name contains "<script>alert('XSS')</script>", it will be displayed
+//   literally as text rather than executed as code
+// - This is superior to HTML escaping (which can have edge cases) because the browser's
+//   DOM API guarantees the content will never be interpreted as markup
+//
 class UIController {
     constructor() {
         this.currentView = 'library';
@@ -317,24 +337,79 @@ class UIController {
         return div.innerHTML;
     }
 
+    /**
+     * Safely render tag suggestions using DOM APIs instead of innerHTML.
+     * This prevents XSS attacks by using textContent for user-controlled data.
+     * 
+     * @param {HTMLElement} container - The container element for suggestions
+     * @param {Array} suggestions - Array of suggestion objects
+     * @param {Function} selectCallback - Callback function when suggestion is selected
+     */
+    renderTagSuggestions(container, suggestions, selectCallback) {
+        if (!container) return;
+
+        // Clear existing content safely
+        container.replaceChildren();
+
+        // Create suggestion items using safe DOM APIs
+        suggestions.forEach((suggestion, index) => {
+            const item = document.createElement('div');
+            item.className = 'tag-suggestion-item';
+            if (suggestion.isNew) {
+                item.classList.add('new-tag');
+            }
+            item.dataset.index = index;
+
+            // Create span for tag name using textContent (XSS-safe)
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = suggestion.name;
+            item.appendChild(nameSpan);
+
+            // Add "NEW" badge if it's a new tag
+            if (suggestion.isNew) {
+                const badge = document.createElement('span');
+                badge.className = 'tag-badge';
+                badge.textContent = 'NEW';
+                item.appendChild(badge);
+            }
+
+            // Attach click handler
+            const clickHandler = () => selectCallback(index);
+            item.addEventListener('click', clickHandler);
+            
+            // Store cleanup for this listener
+            this.tagSuggestionsCleanup.push(() => {
+                item.removeEventListener('click', clickHandler);
+            });
+
+            container.appendChild(item);
+        });
+    }
+
     attachBookDetailListeners(book) {
         // Clean up any previous event listeners
         this.cleanupTagSuggestions();
 
         // Back button
-        document.getElementById('backToLibrary')?.addEventListener('click', () => {
+        const backButton = document.getElementById('backToLibrary');
+        const backClickHandler = () => {
             // Clean up tag suggestions listeners
             this.cleanupTagSuggestions();
             this.hide('bookDetailView');
             this.show('libraryView');
             this.renderBookGrid();
+        };
+        backButton?.addEventListener('click', backClickHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            backButton?.removeEventListener('click', backClickHandler);
         });
 
         // Rating stars
         this.attachRatingListeners(book);
 
         // Add note
-        document.getElementById('addNote')?.addEventListener('click', async () => {
+        const addNoteButton = document.getElementById('addNote');
+        const addNoteHandler = async () => {
             const noteText = document.getElementById('newNoteText').value.trim();
             if (noteText) {
                 await db.addNote(book.id, noteText);
@@ -342,6 +417,10 @@ class UIController {
                 this.showToast('Note added', 'success');
                 this.showBookDetail(book.id);
             }
+        };
+        addNoteButton?.addEventListener('click', addNoteHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            addNoteButton?.removeEventListener('click', addNoteHandler);
         });
 
         // Add tag with autocomplete
@@ -351,7 +430,7 @@ class UIController {
         let selectedSuggestionIndex = -1;
 
         // Show suggestions on input
-        tagInput?.addEventListener('input', async (e) => {
+        const tagInputHandler = async (e) => {
             const query = e.target.value.trim();
             
             if (query.length === 0) {
@@ -366,27 +445,19 @@ class UIController {
                 return;
             }
 
-            // Render suggestions
-            tagSuggestionsDiv.innerHTML = currentSuggestions.map((suggestion, index) => `
-                <div class="tag-suggestion-item ${suggestion.isNew ? 'new-tag' : ''}" data-index="${index}">
-                    <span>${suggestion.name}</span>
-                    ${suggestion.isNew ? '<span class="tag-badge">NEW</span>' : ''}
-                </div>
-            `).join('');
+            // Render suggestions safely using DOM APIs
+            this.renderTagSuggestions(tagSuggestionsDiv, currentSuggestions, selectSuggestion);
             
             tagSuggestionsDiv?.classList.remove('hidden');
             selectedSuggestionIndex = -1;
-
-            // Attach click handlers to suggestions
-            tagSuggestionsDiv.querySelectorAll('.tag-suggestion-item').forEach((item, index) => {
-                item.addEventListener('click', () => {
-                    selectSuggestion(index);
-                });
-            });
+        };
+        tagInput?.addEventListener('input', tagInputHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            tagInput?.removeEventListener('input', tagInputHandler);
         });
 
         // Keyboard navigation for suggestions
-        tagInput?.addEventListener('keydown', async (e) => {
+        const tagKeydownHandler = async (e) => {
             if (tagSuggestionsDiv?.classList.contains('hidden')) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
@@ -414,6 +485,10 @@ class UIController {
                 tagSuggestionsDiv?.classList.add('hidden');
                 selectedSuggestionIndex = -1;
             }
+        };
+        tagInput?.addEventListener('keydown', tagKeydownHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            tagInput?.removeEventListener('keydown', tagKeydownHandler);
         });
 
         const updateSuggestionHighlight = () => {
@@ -475,11 +550,17 @@ class UIController {
         this.showSuggestedTags(book);
 
         // Add photo
-        document.getElementById('addPhoto')?.addEventListener('click', () => {
+        const addPhotoButton = document.getElementById('addPhoto');
+        const addPhotoHandler = () => {
             document.getElementById('photoInput').click();
+        };
+        addPhotoButton?.addEventListener('click', addPhotoHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            addPhotoButton?.removeEventListener('click', addPhotoHandler);
         });
 
-        document.getElementById('photoInput')?.addEventListener('change', async (e) => {
+        const photoInput = document.getElementById('photoInput');
+        const photoChangeHandler = async (e) => {
             const file = e.target.files[0];
             if (file) {
                 const compressed = await compressImage(file);
@@ -487,19 +568,33 @@ class UIController {
                 this.showToast('Photo added', 'success');
                 this.showBookDetail(book.id);
             }
+        };
+        photoInput?.addEventListener('change', photoChangeHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            photoInput?.removeEventListener('change', photoChangeHandler);
         });
 
         // Date changes
-        document.getElementById('dateStarted')?.addEventListener('change', async (e) => {
+        const dateStarted = document.getElementById('dateStarted');
+        const dateStartedHandler = async (e) => {
             book.dateStarted = e.target.value;
             await db.updateBook(book);
             this.showToast('Date updated', 'success');
+        };
+        dateStarted?.addEventListener('change', dateStartedHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            dateStarted?.removeEventListener('change', dateStartedHandler);
         });
 
-        document.getElementById('dateFinished')?.addEventListener('change', async (e) => {
+        const dateFinished = document.getElementById('dateFinished');
+        const dateFinishedHandler = async (e) => {
             book.dateFinished = e.target.value;
             await db.updateBook(book);
             this.showToast('Date updated', 'success');
+        };
+        dateFinished?.addEventListener('change', dateFinishedHandler);
+        this.tagSuggestionsCleanup.push(() => {
+            dateFinished?.removeEventListener('change', dateFinishedHandler);
         });
     }
 
@@ -565,27 +660,56 @@ class UIController {
             return;
         }
 
-        // Render suggested tags
-        suggestedTagsContainer.innerHTML = `
-            <div class="suggested-tags-header">💡 Suggested tags:</div>
-            <div class="suggested-tags-list">
-                ${newSuggestions.map(tagName => `
-                    <div class="suggested-tag" data-tag-name="${this.escapeHtml(tagName)}">
-                        ${this.escapeHtml(tagName)} <span style="opacity: 0.6;">+</span>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+        // Clear container safely
+        suggestedTagsContainer.replaceChildren();
 
-        // Attach click handlers
-        suggestedTagsContainer.querySelectorAll('.suggested-tag').forEach(tagEl => {
-            tagEl.addEventListener('click', async () => {
-                const tagName = tagEl.dataset.tagName;
+        // Create header using safe DOM APIs
+        const header = document.createElement('div');
+        header.className = 'suggested-tags-header';
+        header.textContent = '💡 Suggested tags:';
+        suggestedTagsContainer.appendChild(header);
+
+        // Create list container
+        const listContainer = document.createElement('div');
+        listContainer.className = 'suggested-tags-list';
+        suggestedTagsContainer.appendChild(listContainer);
+
+        // Create suggested tag elements using safe DOM APIs
+        newSuggestions.forEach(tagName => {
+            const tagEl = document.createElement('div');
+            tagEl.className = 'suggested-tag';
+            // Note: tagName is stored in dataset and later passed to db.addTag(). 
+            // While rendering is XSS-safe via textContent, the tag name is stored as-is 
+            // in IndexedDB and must be rendered safely (using textContent) wherever displayed.
+            tagEl.dataset.tagName = tagName;
+            
+            // Use textContent for tag name (XSS-safe)
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = tagName;
+            tagEl.appendChild(nameSpan);
+            
+            // Add space and plus sign
+            tagEl.appendChild(document.createTextNode(' '));
+            const plusSign = document.createElement('span');
+            plusSign.style.opacity = '0.6';
+            plusSign.textContent = '+';
+            tagEl.appendChild(plusSign);
+
+            // Attach click handler
+            const clickHandler = async () => {
                 const tagId = await db.addTag(tagName);
                 await db.addTagToBook(book.id, tagId);
                 this.showToast(`Tag "${tagName}" added`, 'success');
                 this.showBookDetail(book.id);
+            };
+            tagEl.addEventListener('click', clickHandler);
+            
+            // Store cleanup for this listener
+            this.tagSuggestionsCleanup.push(() => {
+                tagEl.removeEventListener('click', clickHandler);
             });
+
+            listContainer.appendChild(tagEl);
         });
     }
 
